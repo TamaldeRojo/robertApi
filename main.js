@@ -6,7 +6,6 @@ require("./db")
 const app = express()
 
 const port = 3000
-// const conn = mongoose.connection
 // app.all('*', function(req,res,next){
 //     res.header('Access-Control-Allow-Origin', '*')
 //     res.header('Access-Control-Allow,Methods', 'PUT,GET,POST,DELETE,OPTIONS')
@@ -24,28 +23,51 @@ app.use(cors());
 app.get("/",async (req,res)=>{
         console.log("Getting")
         try {
-            const soda = new Sodas({title:'Dr Pepper'})
-            await soda.save()
-            console.log('sijala')
-        } catch (error) {
-            console.log("Pito", error)
-        }
-})
-app.get("/a", async (req,res)=>{
+            const soda = await Sodas.find();
+            res.json(soda);
+          } catch (error) {
+            console.error(error);
+            res.status(500).send('Internal Server Error');
+          }
+    })
+
+app.post("/", async (req,res)=>{
     console.log("Posting")
     try {
-        const soda = await Sodas.find();
+        console.log(req.body)
+        const soda = new Sodas({title:req.body.title})
+        await soda.save()
         res.json(soda);
-      } catch (error) {
-        console.error(error);
-        res.status(500).send('Internal Server Error');
-      }
+        console.log('sijala')
+    } catch (error) {
+        console.log("Pito", error)
+    }
+   
 })
-app.delete("/",(req,res)=>{
+app.delete("/",async (req,res) => {
     console.log("deleting")
-})
-app.put("/",(req,res)=>{
+    console.log(req.body)
+
+    const soda = await Sodas.deleteOne({ _id: req.body.id })
+    res.json(soda)
+    })
+app.put("/",async (req,res)=>{
     console.log("Putting")
+    try {
+        const updatedSoda = await Sodas.findByIdAndUpdate(
+            req.body.id,
+            { title: req.body.title },
+            { new: true }
+        );
+
+        if (!updatedSoda) {
+            return res.status(404).json({ message: "Soda not found" });
+        }
+
+        res.json(updatedSoda);
+    } catch (error) {
+        
+    }
 })
 
 app.listen(port, ()=>{
